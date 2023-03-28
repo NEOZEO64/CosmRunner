@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "cosmrunner"
+version = "0.1.0"
+description = ""
+authors = ["NEOZEO"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pygame = "^2.3.0"
+pillow = "^9.4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

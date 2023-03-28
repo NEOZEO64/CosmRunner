@@ -13,7 +13,7 @@ from pygame.locals import *
 
     
 # Bild in bestimmter Größe laden
-def loadIMG(bildPfad, width, height = -1):    
+def loadIMG(bildPfad, width, height=-1):
     # Bild laden
     rawPic = pygame.image.load(bildPfad)
 

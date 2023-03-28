@@ -1,5 +1,9 @@
-import pygame, carlsExtension, math, random
-import json, os
+import pygame
+import lib
+import math
+import random
+import json
+import os
 
 pygame.init()
 
@@ -7,7 +11,7 @@ margin = 40
 
 # Programmeigenschaften einstellen
 WINDOW_WIDTH = 400 + 2*margin
-backgroundPic = carlsExtension.loadIMG("Res/background.png",WINDOW_WIDTH - 2*margin)
+backgroundPic = lib.loadIMG("Res/background.png",WINDOW_WIDTH - 2*margin)
 WINDOW_HEIGHT = backgroundPic.get_height() + 2*margin
 window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT)) # Fenster erstellen
 
@@ -80,14 +84,14 @@ class Player: # Player
     w = 50
     x = WINDOW_WIDTH/2 - w/2
     y = WINDOW_HEIGHT * 0.8
-    pic = carlsExtension.loadIMG("Res/player_ship.png",w)
+    pic = lib.loadIMG("Res/player_ship.png",w)
     h = pic.get_height()
 
 
 class Background:
     spaceColor = (10,10,30)
-    galaxyPic = carlsExtension.loadIMG("Res/galaxy.png",1000)
-    backgroundPic = carlsExtension.loadIMG("Res/background.png",WINDOW_WIDTH-2*margin)
+    galaxyPic = lib.loadIMG("Res/galaxy.png",1000)
+    backgroundPic = lib.loadIMG("Res/background.png",WINDOW_WIDTH-2*margin)
     stars = []
     
     y = 0
@@ -214,17 +218,15 @@ def handleEvents():
 
     Background.move()
 
-    
     if quit:
         for w in waypoints["points"]:
             w[0] -= margin
             w[1] -= margin
 
-        file = open(fileName,"w")
+        file = open(fileName, "w")
         file.write(json.dumps(waypoints))
         file.close()
         return False
-    
     return True
 
 
