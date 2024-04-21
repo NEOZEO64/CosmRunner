@@ -23,7 +23,6 @@ surroundings = [#(x,y) for x in [-1,0,1] for y in [-1,0,1]]# must have length 8
 ]
 
 borderCoords = []
-
 for x in range(-MoveMargin, WINDOW_WIDTH+MoveMargin):
     borderCoords.append((x,-50))
     borderCoords.append((x,WINDOW_HEIGHT+49))

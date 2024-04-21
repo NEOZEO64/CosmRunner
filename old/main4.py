@@ -1,12 +1,10 @@
-import pygame, carlsExtension, random, math, os
-from PIL import Image
+import pygame, carlsExtension, random, math, moveExtension
 
 pygame.init()
 
-
 # Programmeigenschaften einstellen
-WINDOW_WIDTH = 400
-WINDOW_HEIGHT = 600 #Auflösung bitte nicht ändern
+WINDOW_WIDTH = 400 #Auflösung bitte nicht ändern
+WINDOW_HEIGHT = 600 
 
 
 window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT)) # Fenster erstellen
@@ -15,79 +13,9 @@ window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT)) # Fenster erstel
 framesPerSecond = 30 # auch kurz FPS genannt
 fpsClock = pygame.time.Clock()
 
-font = pygame.font.Font('Res/uiFont.ttf', 20)
-
 enemyTroops = []
 
-
-enemyRouteFiles = os.listdir("EnemyRoutes/") # EnemyMove-Pngs need a width of 500 and height of 700
-enemyRoutes = []
-
-MoveMargin = 50
-imageWidth = WINDOW_WIDTH + 2*MoveMargin
-imageHeight = WINDOW_HEIGHT + 2*MoveMargin
-
-surroundings = [ # must have length 8
-    [-1, -1], # up left
-    [ 0, -1], # up
-    [ 1, -1], # up right
-    [ 1,  0], # right
-    [ 1,  1], # down right
-    [ 0,  1], # down
-    [-1,  1], # down left
-    [-1,  0], # left
-]
-
-borderCoords = []
-
-for x in range(-MoveMargin, WINDOW_WIDTH+MoveMargin):
-    borderCoords.append((x,-50))
-    borderCoords.append((x,WINDOW_HEIGHT+49))
-for y in range(-MoveMargin + 1, WINDOW_HEIGHT+MoveMargin -1):
-    borderCoords.append((-50,y))
-    borderCoords.append((WINDOW_WIDTH+49, y))
-
-
-i = 0
-while "pixil-frame-{}.png".format(i) in enemyRouteFiles:
-    image = Image.open("EnemyRoutes/" + "pixil-frame-{}.png".format(i))
-    pixels = list(image.convert('L').getdata())
-    black_pixels = [i for i, pixel in enumerate(pixels) if pixel in list(range(0,10))]
-    black_pixels_coords = [(index % imageWidth, index // imageWidth) for index in black_pixels]
-    black_pixels_coords_moved = [(x-MoveMargin, y-MoveMargin) for (x,y) in black_pixels_coords]
-    enemyRoutes.append(black_pixels_coords_moved)
-    i += 1
-
-
-startPoints = [] # gather all the enemy-spawnpoints in the pictures (at the border of the image)
-for i in range(0, len(enemyRoutes)):
-    startPoints.append([])
-    for (x,y) in borderCoords: 
-        if (x, y) in enemyRoutes[i]:
-            startPoints[i].append((x,y))
-
-def getSpawnPoint(index):
-    return startPoints[index][random.randrange(0,len(startPoints[index]))]
-
-def getNextPoint(lastx, lasty, index, x, y, dist): # dist: how many pixels to go further!
-    tempX, tempY = (x,y)
-    tempLastX, tempLastY = (lastx, lasty)
-
-    for i in range(0, dist):
-        found = False
-        j = 0
-        while j < len(surroundings) and not found:
-            dir = surroundings[j]
-            if (tempX + dir[0],tempY + dir[1]) in enemyRoutes[index] and not (tempX + dir[0] == tempLastX and tempY + dir[1] == tempLastY):
-                found = True
-                tempLastX,tempLastY = (tempX,tempY)
-                tempX,tempY = (tempX+dir[0], tempY+dir[1])
-            j += 1
-        if not found:
-            #print("Done")
-            return (-1000, -1000, 0, 0) # if no way possible or if arrived at the end of the route
-    
-    return tempX, tempY, tempLastX, tempLastY
+score = 0
 
 class Star:
     def __init__(self,x,y):
@@ -122,11 +50,9 @@ class Background:
     y = 0
     vy = 2
     
-    
     for y in range(0, WINDOW_HEIGHT,vy):
         if random.randrange(0,100) > 90:
             stars.append(Star(random.randrange(-10,WINDOW_WIDTH+10),y))
-
 
     def move():
         Background.y += Background.vy
@@ -143,7 +69,6 @@ class Background:
             else:
                 i += 1
 
-        
     def show():
         window.fill(Background.spaceColor) # Fenster schwarz zeichnen
         #window.blit(backgroundPic,(0,backgroundY-WINDOW_HEIGHT))
@@ -188,7 +113,7 @@ class Player: # Player
         Player.y += Player.vy
 
 class Explosion:
-    ws = [ # widths
+    ws = [ # widths / breiten
         80 # type 0
     ]
     
@@ -214,7 +139,7 @@ class Explosion:
         self.speed = 0.5
         self.state = 0
         
-    def move(self): # returns if animation done
+    def move(self): # returns True if animation done
         self.state += self.speed
         
 
@@ -226,28 +151,6 @@ class Explosion:
         window.blit(self.animations[self.type][int(self.state)], (self.x, self.y))
         #window.blit(self.animations[self.type][int(self.state)], (self.x, self.y))
 
-class Score:
-    score = 0
-    cx = 0 # centerx
-
-    label1 = font.render("Score ", 0, (180,0,0))
-    w1, h1 = font.size  ("Score ")
-
-    label2 = font.render("%06d"%score, 0, (255,0,0))
-    w2, h2 = font.size("5"*6)
-
-    x = WINDOW_WIDTH - w1 - w2 - 20
-    x2 = WINDOW_WIDTH - w1 - 20 # changed also
-    y = 10
-    
-    
-    def set(newScore):
-        Score.score = newScore
-        Score.label2 = font.render("%06d"%newScore, 0, (255,0,0))
-
-    def show():
-        window.blit(Score.label1, (Score.x,Score.y))
-        window.blit(Score.label2, (Score.x2, Score.y))
 
 class Bullet:
     w = 5
@@ -284,7 +187,7 @@ class Enemy:
         self.phi = random.randrange(0,360)
         self.rv = random.randint(0,1) * 2 - 1 # -1 or 1
     def move(self):
-        self.x, self.y, self.lastx, self.lasty = getNextPoint(self.lastx, self.lasty, self.moveIndex, self.x, self.y, self.speed)
+        self.x, self.y, self.lastx, self.lasty = moveExtension.getNextPoint(self.lastx, self.lasty, self.moveIndex, self.x, self.y, self.speed)
 
         self.phi += self.rv * random.randrange(0,10)/20
         self.x2 = self.x + Enemy.moveRad * math.cos(self.phi)
@@ -293,7 +196,6 @@ class Enemy:
     def show(self):
         window.blit(self.pic, (self.x2 - Enemy.w/2,self.y2 - Enemy.h/2))
 
-
 class EnemyTroup:
     def __init__(self, routeIndex ,count, speed):
         self.objs = []
@@ -301,7 +203,7 @@ class EnemyTroup:
         self.count = count
         self.speed = speed
 
-        self.startx, self.starty = getSpawnPoint(routeIndex)
+        self.startx, self.starty = moveExtension.getSpawnPoint(routeIndex)
         #print(self.startx, self.starty)
 
         self.spawnCoolDown = 10 # time between spawing enemies
@@ -341,12 +243,11 @@ class EnemyTroup:
             enemy.show()
 
 
-
 def movePhysics():
     Player.move()
 
     if enemyTroops == []:
-        enemyTroops.append(EnemyTroup(random.randrange(0,len(enemyRoutes)),random.randrange(1,20),random.randrange(2,8))) # Troup of one Enemy
+        enemyTroops.append(EnemyTroup(random.randrange(0,len(moveExtension.enemyRoutes)),random.randrange(1,20),random.randrange(2,8))) # Troup of one Enemy
         #enemyTroops.append(EnemyTroup(0,5,8)) # Troup of one Enemy
 
     for eT in enemyTroops:
@@ -377,7 +278,7 @@ def movePhysics():
                             Player.bullets[iBullet].x, Player.bullets[iBullet].y, Bullet.w,Bullet.h,
                             enemyTroops[iEnemyTroop].objs[iEnemy].x,enemyTroops[iEnemyTroop].objs[iEnemy].y,Enemy.w,Enemy.h):
 
-                    Score.set(Score.score + 10)
+                    score += 10
 
                     Explosion.objs.append(Explosion(enemyTroops[iEnemyTroop].objs[iEnemy].x,enemyTroops[iEnemyTroop].objs[iEnemy].y,0)) # 0 for type
                     
@@ -425,7 +326,7 @@ def show():
     for e in Explosion.objs:
         e.show()
 
-    Score.show()
+    carlsExtension.showScore(window, score, WINDOW_WIDTH - 200, 10)
 
     window.blit(Player.pic, (Player.x,Player.y))
 

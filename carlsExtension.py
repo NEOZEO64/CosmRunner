@@ -1,6 +1,8 @@
 from math import sqrt
 import pygame
-from pygame.locals import *
+pygame.init()
+
+# version 11.4.2023
 
 
 # circX: Kreis X Position
@@ -11,7 +13,29 @@ from pygame.locals import *
 # recW: Rechteck Breite
 # recH: Rechteck Höhe
 
-    
+'''
+class Score:
+    font = pygame.font.Font('Res/uiFont.ttf', 20)
+    lastScore = 0
+    label1 = font.render("Score ", 0, (180,0,0))
+    w1, h1 = font.size  ("Score ")
+    label2 = font.render("%06d"%lastScore, 0, (255,0,0))
+    w2, h2 = font.size("5"*6)
+
+
+
+def showScore(window, score, posX, posY):
+    if score != Score.lastScore:
+        Score.label2 = Score.font.render("%06d"%score, 0, (255,0,0))
+        Score.w2, Score.h2 = Score.font.size("5"*6)
+        Score.lastScore = score
+
+    window.blit(Score.label1, (posX, posY))
+    window.blit(Score.label2, (posX + Score.w2, posY))
+
+'''
+
+
 # Bild in bestimmter Größe laden
 def loadIMG(bildPfad, width, height = -1):    
     # Bild laden
@@ -24,6 +48,11 @@ def loadIMG(bildPfad, width, height = -1):
         pic = pygame.transform.scale(rawPic, (width, height))
 
     return pic
+
+def blitRotate(surf, image, topleft, angle):
+    rotated_image = pygame.transform.rotate(image, angle)
+    new_rect = rotated_image.get_rect(center = image.get_rect(topleft = topleft).center)
+    surf.blit(rotated_image, new_rect)
 
 def getRectRectCollide(rec1X, rec1Y, rec1W,rec1H,rec2X,rec2Y,rec2W,rec2H):
     rec1 = pygame.Rect(rec1X, rec1Y, rec1W, rec1H)
@@ -53,16 +82,6 @@ def getCircRectCollide(circX, circY, circRad, recX, recY, recW, recH):
         return False # Kugel ist im freien
 
 
-keyList = {
-    "w":False,
-    "a":False,
-    "s":False,
-    "d":False,
-    "space":False,
-    "shift":False,
-    "q":False,
-    "e":False
-    }
 
 def getKeys():
     #keys = pygame.key.get_pressed()
